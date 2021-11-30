@@ -1,0 +1,28 @@
+﻿dependency,special dependency,lecture,frequency,starting semester
+,,Precalculo,1,2022
+,,Progra,1,2022
+,,Logica 1,1,2022
+,,Analisis de textos,1,2022
+,,Etica,1,2022
+,,Catedra rosarista,1,2022
+,,Electiva general ,1,2022
+Precalculo,,Calculo 1,1,2022
+,,Fundamentos,1,2022
+Progra,,Algoritmos ,1,2022
+Logica 1,,Logica 2,1,2022
+,,Analisis de argumentos,1,2022
+,,Constitucion politica,1,2022
+,,Electiva HM,1,2022
+Calculo 1,,Calculo 2,1,2022
+Calculo 1,,Algebra lineal,1,2022
+Algoritmos ,,Bases de datos,1,2022
+,Calculo 2,Proba 1,1,2022
+Calculo 1;Fundamentos;Algoritmos;Logica 2,,Cornerstone,1,2022
+,,Ensayos de opinion,1,2022
+,,Electiva general ,1,2022
+Calculo 2,,Calculo 3,1,2022
+Algebra lineal,,Teoria de grafos,1,2022
+Logica 2,,Teoria del pc ,1,2022
+Proba 1,,Proba 2,1,2022
+Calculo 2;Algebra lineal,,Optimizacion,1,2022
+,,Electiva HM,1,2022
