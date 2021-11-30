@@ -1,5 +1,5 @@
 
-#Para usar este código tenga en cuenta que:
+# Para usar este código tenga en cuenta que:
 
 * "Libro1.csv" contiene la información relativa a las materias, prerequisitos y la periodicidad en que estas se dictan.
 Para un funcionamiento adecuado del programa recuerde poner en este archivo solo las materias que desea ver. Por ejemplo:
@@ -14,11 +14,11 @@ Finalmente en la columna "dependency" se añade la materia que es prerrequisito 
 
 * "Libro2.csv" contiene en la columna "completed lecture" las materias que se han terminado exitosamente. 
 
-#Para ejecutar el código: 
+# Para ejecutar el código: 
 
 python3 schedule5.py
 
-#Salvedades respecto a la herramienta
+# Salvedades respecto a la herramienta
 
 Para la herramienta será imposible dar una solución si una de las materias que son prerrequisito base (materias obligatorias de MACC que desbloquean 
 una o varias electivas de profundización) no está seleccionadas como vistas en "Libro2.csv", por lo tanto esta herramienta se perfila como una generadora de 
