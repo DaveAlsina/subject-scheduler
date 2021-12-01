@@ -18,9 +18,13 @@ def csv_to_graph():
     # crea el grafo 
     G = nx.DiGraph()
 
-    
-    # añade las materias al grafo junto con sus dependencias 
 
+    # revisa si todas las columnas que deberían tener información, tienen esa información
+    if subjects_grid[ ["lecture", "frequency", "starting semester"] ].isnull().values.any():
+        raise Exception("Hay un error en el csv, alguna materia no tiene la información necesaria")
+    
+
+    # añade las materias al grafo junto con sus dependencias 
     for idx, row in subjects_grid.iterrows():
         
         subj = row["lecture"].strip()
@@ -42,15 +46,15 @@ def csv_to_graph():
 
             G.add_edge(subj_dep.strip(), subj)
 
-
-    print(G.nodes.data())
     
     return G
 
 
+
 def draw_graph(graph):
 
-    nx.draw(graph, with_labels = True, font_weight = 'bold')
+    nx.draw_spring(graph, with_labels = True, font_weight = 'bold')
+    #pos = nx.planar_layout(graph)
     plt.show()
 
 
