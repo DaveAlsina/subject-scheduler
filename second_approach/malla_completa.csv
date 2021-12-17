@@ -1,46 +1,41 @@
-﻿dependency,special dependency,lecture,frequency,starting semester
-,,Precalculo,1,2022
-,,Progra,1,2022
-,,Logica 1,1,2022
-,,Analisis de textos,1,2022
-,,Etica,1,2022
-,,Catedra rosarista,1,2022
-,,Electiva general ,1,2022
-Precalculo,,Calculo 1,1,2022
-,,Fundamentos,1,2022
-Progra,,Algoritmos ,1,2022
-Logica 1,,Logica 2,1,2022
-,,Analisis de argumentos,1,2022
-,,Constitucion politica,1,2022
-,,Electiva HM,1,2022
-Calculo 1,,Calculo 2,1,2022
-Calculo 1,,Algebra lineal,1,2022
-Algoritmos ,,Bases de datos,1,2022
-,Calculo 2,Proba 1,1,2022
-Calculo 1;Fundamentos;Algoritmos;Logica 2,,Cornerstone,1,2022
-,,Ensayos de opinion,1,2022
-,,Electiva general ,1,2022
-Calculo 2,,Calculo 3,1,2022
-Algebra lineal,,Teoria de grafos,1,2022
-Logica 2,,Teoria del pc ,1,2022
-Proba 1,,Proba 2,1,2022
-Calculo 2;Algebra lineal,,Optimizacion,1,2022
-,,Electiva HM,1,2022
-Calculo 3,,Fisica,1,2022
-Calculo 3;Logica 1,,Analisis real,1,2022
-Calculo 3;Algebra lineal,,Ecuaciones diferenciales,1,2022
-Proba 2,,Analisis estadistico,1,2022
-Teoria de grafos;Bases de datos;Proba 2;Cornerstone;Optimizacion,,Keystone,1,2022
-Analisis real,,Topologia,1,2022
-Algebra lineal;Logica 1,,Abstracta,1,2022
-Ecuaciones diferenciales,,Modelacion sis. dinamicos,1,2022
-,,Seminario de grado,1,2022
-,,Electiva general ,1,2022
-Modelacion sis. dinamicos;Progra;Proba 2,,Modelacion sis. naturales,1,2022
-Algoritmos;Ecuaciones diferenciales,,Analisis numerico,1,2022
-Teoria de grafos; Algoritmos; Proba 2;Optimizacion,Topologia,Geometria computacional,1,2022
-Seminario de grado,,Opcion de grado 1,1,2022
-,,Electiva general ,1,2022
-Modelacion sis. dinamicos; Keystone; Seminario de grado,,Capstone,1,2022
-,,Electiva general ,1,2022
-Opcion de grado 1,,Opcion de grado 2,1,2022
+dependency,special dependency,lecture,frequency,starting semester,creds
+,,Precalculo,1,2022,3
+,,Progra,1,2022,3
+,,Logica 1,1,2022,3
+,,Analisis de textos,1,2022,2
+,,Etica,1,2022,2
+,,Catedra rosarista,1,2022,2
+Precalculo,,Calculo 1,1,2022,3
+,,Fundamentos,1,2022,3
+Progra,,Algoritmos ,1,2022,3
+Logica 1,,Logica 2,1,2022,2
+,,Analisis de argumentos,1,2022,2
+,,Constitucion politica,1,2022,2
+Calculo 1,,Calculo 2,1,2022,3
+Calculo 1,,Algebra lineal,1,2022,3
+Algoritmos ,,Bases de datos,1,2022,3
+,Calculo 2,Proba 1,1,2022,3
+Calculo 1;Fundamentos;Algoritmos;Logica 2,,Cornerstone,1,2022,3
+,,Ensayos de opinion,1,2022,2
+Calculo 2,,Calculo 3,1,2022,2
+Algebra lineal,,Teoria de grafos,1,2022,3
+Logica 2,,Teoria del pc ,1,2022,3
+Proba 1,,Proba 2,1,2022,2
+Calculo 2;Algebra lineal,,Optimizacion,1,2022,3
+Calculo 3,,Fisica,1,2022,3
+Calculo 3;Logica 1,,Analisis real,1,2022,3
+Calculo 3;Algebra lineal,,Ecuaciones diferenciales,1,2022,3
+Proba 2,,Analisis estadistico,1,2022,3
+Teoria de grafos;Bases de datos;Proba 2;Cornerstone;Optimizacion,,Keystone,1,2022,3
+Analisis real,,Topologia,1,2022,3
+Algebra lineal;Logica 1,,Abstracta,1,2022,4
+Ecuaciones diferenciales,,Modelacion sis. dinamicos,1,2022,3
+,,Seminario de grado,1,2022,1
+Modelacion sis. dinamicos;Progra;Proba 2,,Modelacion sis. naturales,1,2022,2
+Algoritmos;Ecuaciones diferenciales,,Analisis numerico,1,2022,3
+Teoria de grafos; Algoritmos; Proba 2;Optimizacion,Topologia,Geometria computacional,1,2022,4
+Seminario de grado,,Opcion de grado 1,1,2022,4
+Modelacion sis. dinamicos; Keystone; Seminario de grado,,Capstone,1,2022,3
+Opcion de grado 1,,Opcion de grado 2,1,2022,4
+,,Electiva general,1,2022,11
+,,Electiva HM,1,2022,6
