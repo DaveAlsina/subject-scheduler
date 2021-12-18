@@ -4,7 +4,7 @@ import networkx as nx
 
 
 import pprint
-pp = pprint.PrettyPrinter(depth=3, width=50, indent=2, compact=True)
+pp = pprint.PrettyPrinter(depth=3, width=100, indent=2, compact=True)
 
 
 def delete_seen_subjects(graph: nx.Graph):
@@ -66,6 +66,27 @@ def csv_to_graph():
 
     # quita los espacios a los lados de todos los strings
     subjects_grid.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+    # toma las electivas de profundización que el usuario desea tomar
+
+    print("¿Qué ramas de profundización desea estudiar? ")
+    print(" 1. Inteligencia Artificial\n 2. Ciencia de Datos\n 3. Ciber-Seguridad\n 4. Actuaría\n -1. Omitir")
+    selection = input("Su selección (escriba numeros separados por comas): ")
+    selection = selection.split(',')
+    selection = [int(option) for option in selection]
+
+    # diccionario con los nombres de los archivos y su correspondiente seleccion de usuario
+    files = {1: './data/inteligencia_artificial.csv', 2: './data/ciencia_de_datos.csv',
+             3: './data/ciber_seguridad.csv', 4: './data/actuaria.csv'}
+
+    # si no se omitio entonces agregue los datos necesarios
+    if -1 not in selection: 
+        for profundization_line in selection:
+
+            data = pd.read_csv(files[profundization_line])
+            data.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+            subjects_grid = pd.concat([subjects_grid, data])
 
 
     # toma la columna de nombres de materias y las transforma en una lista
