@@ -1,4 +1,21 @@
 
+## Ejecución 
+
+Para ejecutar por primera vez y testear rápidamente el programa puede ejecutar:
+
+		python3 build_graph_from_lecture_grid.py
+		
+Aparecerá un menú de opciones, para probar el programa y que sea rápidamente seleccione 
+la opcion -1 de menú.
+
+Si desea guardar los resultados en un archivo txt:
+
+		python3 build_graph_from_lecture_grid.py > cat output.txt
+
+*_(recuerde que el programa necesita un input (1, 2, 3, 4, -1) para poderse ejecutar, 
+aunque no se muestre en consola ponga el input y oprima <enter>, una vez hecho esto 
+el programa podrá correr)_*
+
 
 ### Versiones 
 
