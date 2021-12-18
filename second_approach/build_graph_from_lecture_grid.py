@@ -1,74 +1,25 @@
 from itertools import combinations
-import copy
+from copy import deepcopy
 
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
-import pprint
-
-pp = pprint.PrettyPrinter(depth=3, width=50, indent=2, compact=True)
 
 
-def csv_to_graph():
-
-    """
-        Lee el csv de la malla de la carrera y lo vuelve un grafo dirigido
-        donde las dependencias son aristas de la forma (materia_que_es_prerreq, materia_que_tiene_prerreq)
-        y donde cada nodo almacena información como si hay correquisitos (*codep*),
-        la periodicidad con  que se dicta la materia (*freq*), 
-        y el semestre en que comienza a dictarse dicha materia (*start*)
-    """
-
-    # lee la malla completa y la transforma en un dataframe
-    subjects_grid = pd.read_csv("./malla_completa.csv")
-
-    # toma la columna de nombres de materias y las transforma en una lista
-    subjects_names = list(subjects_grid["lecture"].values) 
-    
-    # crea el grafo 
-    G = nx.DiGraph()
-
-
-    # revisa si todas las columnas que deberían tener información, tienen esa información
-    if subjects_grid[ ["lecture", "frequency", "starting semester"] ].isnull().values.any():
-        raise Exception("Hay un error en el csv, alguna materia no tiene la información necesaria")
-    
-
-    # añade las materias al grafo junto con sus dependencias 
-    for idx, row in subjects_grid.iterrows():
-        
-        subj = row["lecture"].strip()
-        freq = row["frequency"]
-        start = row["starting semester"]
-        creds = row["creds"]
-
-        
-        # añade la materia al grafo
-        G.add_node(subj, freq = freq, start = start, creds = creds, codep = "")                    
-
-        # toma las dependencias de esa materia y las separa
-        subj_dependencies = str(row["dependency"]).split(';')            
-        subj_codependecies = str(row["special dependency"]).split(';')
-
-        for subj_dep, subj_codep in zip(subj_dependencies, subj_codependecies):
-
-
-             # añade la arista al grafo en caso de que esta no tenga 'nan' como dependencia
-            if subj_dep != 'nan':
-                G.add_edge(subj_dep.strip(), subj)
-
-            # añade la codependencia al grafo como un atributo del nodo
-            if subj_codep != 'nan':
-                G.nodes[subj]["codep"] = subj_codep
-
-    return G
+from auxiliary_functions import *
 
 
 
-def find_solutions(graph: nx.Graph, maxcreds = 19):
+def find_solutions(graph: nx.Graph, creds_semester = (16,19), creds_hm = (1, 4), creds_elec = (2,3)):
 
     """
         Wrapper para la función recursiva find_solutions_backtracking
+
+
+        creds_semester  -> (minimo de créditos inscribible en un semestre, máximo de créditos inscribible en un semestre)
+        creds_hm        -> (mínimo de créditos hm en un semestre, máximo de créditos hm en un semestre)
+        creds_elec      -> (mínimo de créditos electiva general en semestre, máximo de créditos electiva general en semestre)
+       
     """
     
     # obtiene el grafo con las materias que faltan por ver dentro de la malla académica
@@ -76,112 +27,288 @@ def find_solutions(graph: nx.Graph, maxcreds = 19):
 
     draw_graph(graph)
     
-
-    # diccionario con la lista de materias a ir inscribiendo en cada semestre
-    # {0: [...], 1: [...]}
+    # lee la malla completa y la transforma en un dataframe
+    subjects_grid = pd.read_csv("./malla_completa.csv")
     
-    path = {0 : []}
-
+    # quita los espacios en blanco de los extremos de los strings
+    subjects_grid.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
     # busca una solución por backtracking
-    find_solutions_bruteforce(graph, path, maxcreds)
+    find_solutions_bruteforce(graph, subjects_grid, creds_semester, creds_hm, creds_elec)
 
 
 
-
-def find_solutions_bruteforce(graph: nx.Graph, path: dict, maxcreds: int):
+def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,  
+                              creds_semester:tuple, creds_hm:tuple, creds_elec: tuple):
 
     """
-
+        
     """
 
     # obtiene las materias que se pueden ver 
     elegible_lectures = [lecture for lecture, indegree in graph.in_degree if indegree == 0]
 
-    print(elegible_lectures)
-    
+    # obtiene una lista de soluciones validas
+    valid_combinations = generate_valid_combinatorics(elegible_lectures, graph,
+                                                      creds_semester, creds_hm, creds_elec)
 
 
+    """
+        Hay que hacer un loop en paralelo que se encargue de hacer la parte recursiva
+        en 4 batches o tantas como el número de hilos del computador.
 
-    #print(graph.nodes(data=True))
+
+        Usar un set para ver si hay repeticiones de combinaciones de malla
+        hay que ordenar alfabeticamente cada lista de combinaciones de la malla
+    """
+
+    solutions = set()
+    count = 0
+
+    for combination in valid_combinations:
+
+        print("iteración", count)
+
+        solution = recursive_trial( deepcopy(graph), combination, creds_semester, creds_hm, creds_elec )
+        
+        # si tiene una solución 
+        # 1. Pongala en el orden correcto (desde lo que se inscribió primero hacia lo que se inscribió final)
+        # 2. Las materias que se meten en cada semestre ordenelas alfabeticamente
+
+        if len(solution) != 0:
+
+            fixed_solution = []
+
+            # Pone reversa la tupla para que quede en el orden correcto 
+            # ( desde lo primero en inscribir hasta lo último ) 
+            for semester, creds in solution[::-1]:
+
+                semester = list(semester)
+                semester.sort()
+                
+                fixed_solution.append( (tuple(semester), creds) )
+
+
+            solutions.add(tuple(fixed_solution))
+
+        
+        print("-"*10)
+
+
+    print(solutions)
+    print(len(solutions))
     
     pass
     
 
-def delete_seen_subjects(graph: nx.Graph):
+
+
+
+def generate_valid_combinatorics(subjects: list, graph: nx.Graph, creds_semester:tuple, creds_hm:tuple, creds_elec:tuple):
 
     """
-        Recibe el grafo de la malla de las materias que se desean completar
-        y elimina del grafo los nodos que corresponden a materias vistas
+        Dada una lista de materias validas a inscribir (subjects) se encarga de generar una lista de combinaciones 
+        que cumplen con el requisito de que su suma de créditos está entre el mínimo de creditos (mincreds)
+        y el máximo de creditos (maxcreds).
 
-        return: grafo con las materias por ver y sus dependencias
+        retorna: 
+
+                valid_combinations -> una lista de tuplas de la forma: 
+
+                [
+                    ( (combinacion), (numero_creditos_elec_gen, numero_creditos_elec_hm) ) 
+                    ...
+                    ( (combinacion), (numero_creditos_elec_gen, numero_creditos_elec_hm) ) 
+                ]
+
+                Donde *combinacion* es una tupla de strings que representan las materias a meter en ese semestre.
+                En otras palabras retorna una lista de combinaciones de materias a inscribir.
+
     """
 
+    # lista de combinaciones válidas
+    valid_combinations = []
+
+    # empieza a hacer todas las combinaciones posibles de la lista de materias 
+    # elegibles
+
+    for i in range(1, len(subjects)+1):
+
+        for combination in list( combinations(subjects, i) ):
+            
+            
+
+            # dado que las electivas generales y las electivas HM 
+            # son de un número de créditos variables dependiendo de que materia se escoge
+            # la idea es añadir varias combinacines de la forma:
+
+            # [
+            #   ( (combinacion), (numero_creditos_elec_gen, numero_creditos_elec_hm) ) 
+            #   ...
+            #   ( (combinacion), (numero_creditos_elec_gen, numero_creditos_elec_hm) ) 
+            # ]
+
+            combinations_of_combination = []    # lista para guardar las combinaciones que salen de la combinación Dada
+                                                # estas combinaciones surgen de asumir distintos valores para los créditos 
+                                                # que se toman de elec generales o hm
+
+            # lista de tuplas de la forma: (numero_creditos_elec_gen, numero_creditos_elec_hm)
+            combs_creds = []
+
+            if ('Electiva general' in combination) and ('Electiva HM' in combination): 
+                
+                available_creds_gen = graph["Electiva general"]["creds"]
+                available_creds_hm = graph["Electiva HM"]["creds"]
+
+                # puede que hallan menos creditos disponibles que el máximo que se puede inscribir
+                # o puede que hallan más creditos disponibles que los que se desean inscribir en un semestre
+                # por lo que se debe escoger como cota superior el mínimo entre ambas
+
+                maxval_gen = min(available_creds_gen, creds_elec[1])
+                maxval_hm = min(available_creds_hm, creds_hm[1])
+
+                
+                for i in range(creds_elec[0], maxval_gen + 1):
+                    for j in range(creds_hm[0], maxval_hm + 1):
+
+                        combs_creds.append( (i, j) )
+
+            # caso en el que solo hay como opción el meter electiva general
+            elif ('Electiva general' in combination):
+
+                available_creds_gen = graph.nodes["Electiva general"]["creds"]
+                maxval_gen = min(available_creds_gen, creds_elec[1])
+
+                for i in range(creds_elec[0], maxval_gen + 1):
+                    combs_creds.append( (i, 0) )
 
 
-    # lee las materias vistas y las transforma en un dataframe
-    seen_subjects = pd.read_csv("./completed_lectures.csv")
+            # caso en el que solo hay como opción el meter electiva hm
+            elif ('Electiva HM' in combination):
 
-    # crea una lista con los strings de las materias vistas
-    seen_subjects_strip = [ lecture.strip() for lecture in list(seen_subjects["completed lecture"]) ]
+                print(graph.nodes(data=True))
+                available_creds_hm = graph.nodes["Electiva HM"]["creds"]
+                maxval_hm = min(available_creds_hm, creds_hm[1])
+
+                for j in range(creds_hm[0], maxval_hm + 1):
+                    combs_creds.append( (0, j) )
+
+
+
+            # creditos que vienen de meter todas las materias de la combinación 
+            # excepto por la electiva general y la hm 
+            num_creds = 0
+
+            for lecture in combination:
+                if lecture not in ['Electiva general', 'Electiva HM']:
+                    num_creds += graph.nodes[lecture]["creds"]
     
-    # busca las materias completamente vistas
-    # (esto lo hice principalmente para el tema de los 11 creds de electivas generales y 6 de HM)
-    # no trate estos casos en específico por aparte porque no se sentía generales
-    # el código si hacía eso, por esa razón hago esta parte del código para todas las materias vistas
-    # aunque en nuestro contexto no sea necesario
 
+            # en caso de que si hayan combinaciones de electivas
+            if len(combs_creds) != 0:
+                for cred_combination in combs_creds:
+
+                    value = num_creds + sum(cred_combination)
+                
+                    if (value >= creds_semester[0]) and ( value <= creds_semester[1]):
+                        valid_combinations.append( ( (combination), cred_combination ) )
+
+            # en caso de que no se tenga en cuenta electivas en esta combinacion en particular
+            elif ( num_creds >= creds_semester[0]) and ( num_creds <= creds_semester[1] ):
+
+                valid_combinations.append( ( (combination), (0, 0) ) )
+                
+
+            
+
+    #pp.pprint(valid_combinations)
+    #print("numero de combinaciones válidas: ", len(valid_combinations))
+
+    return valid_combinations
+
+
+def recursive_trial(graph: nx.Graph, combination: tuple,  
+                    creds_semester: tuple, creds_hm: tuple, creds_elec: tuple ):
+
+    """
+
+    """
+    
+    print(graph, "...")
+
+
+    # lista de materias completadas ese semestre
     completed_lecs = []
 
-    for lecture in seen_subjects_strip:
+    # rellena la lista de materias completadas y modifica el grafo 
+    # en caso de que haya que restar créditos de electivas HM o generales
 
-        curr_lect = seen_subjects[ seen_subjects["completed lecture"] == lecture]
+    for lecture in combination[0]:
 
-        # si se han visto todos los creditos que se deberían entonces es una materia vista
-        if graph.nodes[lecture]["creds"] == int(curr_lect["creds"]):
-            completed_lecs.append(lecture)
+        if (lecture != 'Electiva general') and (lecture != 'Electiva HM'):
+            completed_lecs.append( lecture ) 
 
-        # si aún le faltan actualice en el grafo cuántos le faltan
-        else:
-            graph.nodes[lecture]["creds"] = graph.nodes[lecture]["creds"] - int(curr_lect["creds"])
+        elif lecture == 'Electiva general':
+            graph.nodes[lecture]["creds"] = graph.nodes[lecture]["creds"] - combination[1][0]
+            
+            # si se completaron todos los créditos de electiva general 
+            # añadala a las materias completadas
+            if graph.nodes[lecture]["creds"] == 0:
+                completed_lecs.append(lecture)
 
+            # si se excede la cantidad de electivas generales que se debían meter descarte la 
+            # combinación
+            elif graph.nodes[lecture]["creds"] < 0:
+                return []
 
+        else: 
+
+            graph.nodes[lecture]["creds"] = graph.nodes[lecture]["creds"] - combination[1][1]
+            
+            # si se completaron todos los créditos de electiva general 
+            # añadala a las materias completadas
+            if graph.nodes[lecture]["creds"] == 0:
+                completed_lecs.append(lecture)
+
+            # si se excede la cantidad de electivas generales que se debían meter descarte la 
+            # combinación
+            elif graph.nodes[lecture]["creds"] < 0:
+                return []
+
+    # quita del grafo los nodos de las materias ya vistas
     graph.remove_nodes_from(completed_lecs)
-    #print("materias completadas: ", completed_lecs)
 
-    return graph
+    print(graph)
 
+    # obtiene las materias que se pueden ver 
+    elegible_lectures = [lecture for lecture, indegree in graph.in_degree if indegree == 0]
 
-##############################
-#          CHECKERS    
-##############################
+    # crea las combinaciones viables de materias a inscribir
+    valid_combinations = generate_valid_combinatorics(elegible_lectures, graph,
+                                                      creds_semester, creds_hm, creds_elec)
 
+    print("para", len(elegible_lectures), "materias elegibles hay: ", len(valid_combinations), "combinaciones")
+    
+    # si el numero de nodos que quedan en el grafo llega a ser cero 
+    # quiere decir que se solucionó el problema
+    if graph.number_of_nodes() == 0:
+        return [ combination ]
 
-def draw_graph(graph):
+    elif len(valid_combinations) == 0:
+        return []
 
-    """
-        Función para dibujar el grafo dado con un layout basado en simulación 
-        de resortes
-    """
+    else: 
 
-    nx.draw_spring(graph, with_labels = True, font_weight = 'bold')
-    plt.show()
+        for new_combination in valid_combinations:
 
+            solution = recursive_trial( deepcopy(graph), new_combination, creds_semester, creds_hm, creds_elec )
 
+            if len(solution) > 0:
+                solution.append( combination ) 
+                return solution
 
-def check_graph_attrs(graph):
-
-    """
-    Función para revisar cuales son los atributos de los nodos del grafo
-    """
-
-    for node in graph.nodes():
-        pp.pprint([ node, list( graph.nodes[node].items()) ])
-        print("-"*50)
-
-
-
-
+        return []
+     
 
 
 grafito = csv_to_graph()
