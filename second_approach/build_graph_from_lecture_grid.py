@@ -28,7 +28,7 @@ def find_solutions(graph: nx.Graph, creds_semester = (16,19), creds_hm = (1, 4),
     draw_graph(graph)
     
     # lee la malla completa y la transforma en un dataframe
-    subjects_grid = pd.read_csv("./malla_completa.csv")
+    subjects_grid = pd.read_csv("./data/malla_completa.csv")
     
     # quita los espacios en blanco de los extremos de los strings
     subjects_grid.applymap(lambda x: x.strip() if isinstance(x, str) else x)
@@ -74,6 +74,9 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
         # si tiene una solución 
         # 1. Pongala en el orden correcto (desde lo que se inscribió primero hacia lo que se inscribió final)
         # 2. Las materias que se meten en cada semestre ordenelas alfabeticamente
+        # (todo esto lo hago porque no se como hace el hashing la estructura de datos de set, 
+        # por lo que trato de dejar todo uniforme para evitar que hayan soluciones iguales en el set pero 
+        # con un orden distinto, y que no fueran consideradas como iguales por el hashing)
 
         if len(solution) != 0:
 

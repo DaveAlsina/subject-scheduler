@@ -18,7 +18,7 @@ def delete_seen_subjects(graph: nx.Graph):
 
 
     # lee las materias vistas y las transforma en un dataframe
-    seen_subjects = pd.read_csv("./completed_lectures.csv")
+    seen_subjects = pd.read_csv("./data/completed_lectures.csv")
     seen_subjects.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
     # crea una lista con los strings de las materias vistas
@@ -62,7 +62,7 @@ def csv_to_graph():
     """
 
     # lee la malla completa y la transforma en un dataframe
-    subjects_grid = pd.read_csv("./malla_completa.csv")
+    subjects_grid = pd.read_csv("./data/malla_completa.csv")
 
     # quita los espacios a los lados de todos los strings
     subjects_grid.applymap(lambda x: x.strip() if isinstance(x, str) else x)
