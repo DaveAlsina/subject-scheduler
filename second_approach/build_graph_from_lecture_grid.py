@@ -13,7 +13,7 @@ from datetime import datetime
 from auxiliary_functions import *
 
 
-def find_solutions(graph: nx.Graph, creds_semester = (16,19), creds_hm = (1, 4), creds_elec = (2,3), verbose = False):
+def find_solutions(graph: nx.Graph, creds_semester = (15,19), creds_hm = (1, 4), creds_elec = (2,3), verbose = False):
 
     """
         Wrapper para la función recursiva find_solutions_backtracking
@@ -28,7 +28,7 @@ def find_solutions(graph: nx.Graph, creds_semester = (16,19), creds_hm = (1, 4),
     # obtiene el grafo con las materias que faltan por ver dentro de la malla académica
     graph = delete_seen_subjects(graph)
 
-    #draw_graph(graph)
+    draw_graph(graph)
     
     # lee la malla completa y la transforma en un dataframe
     subjects_grid = pd.read_csv("./data/malla_completa.csv")
@@ -37,11 +37,9 @@ def find_solutions(graph: nx.Graph, creds_semester = (16,19), creds_hm = (1, 4),
     subjects_grid.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
     # busca una solución por backtracking
-    solutions = find_solutions_bruteforce(graph, subjects_grid, creds_semester, creds_hm, creds_elec)
+    solutions = find_solutions_bruteforce(graph, subjects_grid, creds_semester, creds_hm, creds_elec, verbose)
 
-    print("\n\n")
-    for solution in solutions:
-        print(solution, "\n")
+    save_solution_as_csv(solutions)
 
 
 
@@ -58,7 +56,7 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
 
     # obtiene una lista de soluciones validas
     valid_combinations = generate_valid_combinatorics(elegible_lectures, graph,
-                                                      creds_semester, creds_hm, creds_elec)
+                                                      creds_semester, creds_hm, creds_elec, verbose)
 
 
     """
@@ -91,7 +89,12 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
             remaining_time = mean - total_duration
 
         msg = "Progreso: %.3f%% | %d/%d, soluciones: %d, tiempo faltante: %.1f segs"
-        stdout.write('\r')
+
+        if verbose:
+            stdout.write('\n')
+        else:
+            stdout.write('\r')
+
         stdout.write(msg % ((count*100/ncombinations) , count, ncombinations, int(len(solutions)), remaining_time ) )
         stdout.flush()
 
@@ -102,7 +105,7 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
 
         tic = time()
         
-        solution = recursive_trial( deepcopy(graph), combination, creds_semester, creds_hm, creds_elec )
+        solution = recursive_trial( deepcopy(graph), combination, creds_semester, creds_hm, creds_elec, verbose)
         
         # si tiene una solución 
         # 1. Pongala en el orden correcto (desde lo que se inscribió primero hacia lo que se inscribió final)
@@ -126,7 +129,7 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
 
 
             solutions.add(tuple(fixed_solution))
-        
+
         toc = time()
         total_duration += (toc - tic)
 
@@ -305,6 +308,7 @@ def recursive_trial(graph: nx.Graph, combination: tuple,
             # si se excede la cantidad de electivas generales que se debían meter descarte la 
             # combinación
             elif graph.nodes[lecture]["creds"] < 0:
+                print('secuencia descartada')
                 return []
 
         else: 
@@ -319,6 +323,7 @@ def recursive_trial(graph: nx.Graph, combination: tuple,
             # si se excede la cantidad de electivas generales que se debían meter descarte la 
             # combinación
             elif graph.nodes[lecture]["creds"] < 0:
+                print('secuencia descartada')
                 return []
 
     # quita del grafo los nodos de las materias ya vistas
@@ -349,7 +354,7 @@ def recursive_trial(graph: nx.Graph, combination: tuple,
 
         for new_combination in valid_combinations:
 
-            solution = recursive_trial( deepcopy(graph), new_combination, creds_semester, creds_hm, creds_elec )
+            solution = recursive_trial( deepcopy(graph), new_combination, creds_semester, creds_hm, creds_elec, verbose)
 
             if len(solution) > 0:
                 solution.append( combination ) 
@@ -361,7 +366,7 @@ def recursive_trial(graph: nx.Graph, combination: tuple,
 start_time = datetime.now()
 
 grafito = csv_to_graph()
-find_solutions(grafito)
+find_solutions(grafito, verbose = False)
 
 end_time = datetime.now()
 print('\nDuration: {}'.format(end_time - start_time))
