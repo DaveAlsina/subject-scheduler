@@ -6,27 +6,47 @@ Para ejecutar por primera vez y testear rápidamente el programa puede ejecutar:
 		python3 build_graph_from_lecture_grid.py
 		
 Aparecerá un menú de opciones, para probar el programa y que sea rápidamente seleccione 
-la opcion -1 de menú.
-
-Si desea guardar los resultados en un archivo txt:
-
-		python3 build_graph_from_lecture_grid.py > cat output.txt
-
-*_(recuerde que el programa necesita un input (1, 2, 3, 4, -1) para poderse ejecutar, 
-aunque no se muestre en consola ponga el input y oprima <enter>, una vez hecho esto 
-el programa podrá correr)_*
+la opcion -1 de menú. Las soluciones encontradas se guardarán en un csv dentro de la carpeta
+**solutions** con un timestamp por nombre de archivo.
 
 
 ### Versiones 
 
-*	Networkx versión 2.6.3 
-*	Matplotlib versión 3.5.0
-*	Pandas versión 1.3.5
+Para satisfacer los requerimientos  de versiones de librerías puede crear un ambiente virtual 
+con **virtualenv**:
 
-*	PyQt5 versión 5.15.6
+		python -m venv ./venv
+		source ./venv/bin/activate
 
-Para satisfacer estos requerimientos fácilmente active el ambiente de esta carpeta
-(este se guarda en la carpeta 'venv') y ejecute:
+Después instale los requerimientos:
 
 		pip install -r requirements.txt
+
+Al momento de salir de la carpeta puede ejecutar:
+
+		deactivate
+
+Para desactivar el ambiente virtual.
+
+Un script para automatizar la activación y desactivación de los ambientes virtuales 
+que le puede ser de mucha utilidad es: 
+
+		function cd() {
+		  if [[ -d ./venv ]] ; then
+			deactivate
+		  fi
+
+		  builtin cd $1
+
+		  if [[ -d ./venv ]] ; then
+			. ./venv/bin/activate
+		  fi
+		}
+
+_Puede agregarlo a su .bashrc_
+
+
+
+
+
 
