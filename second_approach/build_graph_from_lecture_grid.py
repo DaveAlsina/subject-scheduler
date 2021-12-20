@@ -4,6 +4,7 @@ from copy import deepcopy
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+import cProfile
 
 from sys import stdout
 from time import time
@@ -62,7 +63,6 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
     """
         Hay que hacer un loop en paralelo que se encargue de hacer la parte recursiva
         en 4 batches o tantas como el número de hilos del computador.
-
 
         Usar un set para ver si hay repeticiones de combinaciones de malla
         hay que ordenar alfabeticamente cada lista de combinaciones de la malla
@@ -363,11 +363,14 @@ def recursive_trial(graph: nx.Graph, combination: tuple,
         return []
      
 
+def correr_todo():
+
+    grafito = csv_to_graph()
+    find_solutions(grafito, verbose = False)
+
+
 start_time = datetime.now()
-
-grafito = csv_to_graph()
-find_solutions(grafito, verbose = False)
-
+cProfile.run("correr_todo()")
 end_time = datetime.now()
 print('\nDuration: {}'.format(end_time - start_time))
 
