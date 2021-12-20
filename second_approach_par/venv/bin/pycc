@@ -1,3 +1,0 @@
-#!/home/dave/Documents/projects/subject-scheduler/second_approach/venv/bin/python3
-from numba.pycc import main
-main()
