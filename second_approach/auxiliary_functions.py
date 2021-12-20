@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import networkx as nx
 
-
+from datetime import datetime
 import pprint
 pp = pprint.PrettyPrinter(depth=3, width=100, indent=2, compact=True)
+
 
 
 def delete_seen_subjects(graph: nx.Graph):
@@ -129,6 +130,96 @@ def csv_to_graph():
                 G.nodes[subj]["codep"] = subj_codep
 
     return G
+
+
+
+def save_solution_as_csv(solutions: list):
+
+    """
+        Recibe la lista de soluciones de la forma:
+
+        [
+            (
+                ( (str, ..., str), (int, int) ),
+                ( (str, ..., str), (int, int) ),
+                ( (str, ..., str), (int, int) ),
+            )
+
+            , ... ,
+
+            (
+                ( (str, ..., str), (int, int) ),
+                ( (str, ..., str), (int, int) ),
+                ( (str, ..., str), (int, int) ),
+            ),
+
+        ]
+
+        Y la transforma en dataframe para guardarlo como csv,
+        el dataframe es de la forma: 
+
+            +--------------------------------------------------------------------------------+
+            +    sem_1    + creds_gen_sem_1 +   creds_hm_sem_1 +  ...  +    sem_n    +  ...  +
+            + str;...;str +       int       +        int       +  ...  + str;...;str +  ...  +
+            +     ...     +       ...       +        ...       +  ...  +     ...     +  ...  +
+            +--------------------------------------------------------------------------------+
+
+    """
+
+    # obtiene el número máximo de semestres que contempla una solución
+    number_of_semesters = 0
+    
+    for complete_solutions in solutions:
+
+        if number_of_semesters < len(complete_solutions):
+            number_of_semesters = len(complete_solutions)
+
+    # titulos de las columnas de los dataframes
+    titles = []
+
+    for i in range(1, number_of_semesters + 1):
+
+        titles.append( "sem_"           + str(i))
+        titles.append( "creds_gen_sem_" + str(i))   
+        titles.append( "creds_hm_sem_"  + str(i))
+
+    data = pd.DataFrame(columns = titles)
+    
+
+    # contador de la fila en la que se está
+    count = 0
+
+    for solution in solutions:
+        
+        row = []
+
+        for semester in solution:
+
+            
+            row.append( ";".join(semester[0]) )
+            row.append( str(semester[1][0]) ) 
+            row.append( str(semester[1][1]) ) 
+
+        # si esta solucion tiene menos semestres que los de la solución máxima 
+        # rellene las columnas faltantes con '-'
+        # (recuerde que por cada semestre hay 3 columnas)
+
+        if len(row) < number_of_semesters:
+            [ row.append('-') for i in range( (number_of_semesters - len(row))*3 ) ] 
+
+
+        data.loc[count] = row
+        count += 1
+
+    
+    dateTimeObj = datetime.now()
+    filename = dateTimeObj.strftime("%d_%b_%Y_%Hh_%Mmin")
+    filename = './solutions/' + filename + '.csv'
+
+    data.to_csv(filename, sep=',', index = False, encoding = 'UTF-8')
+    
+    return 
+
 
 
 ##############################
