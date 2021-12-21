@@ -222,6 +222,56 @@ def save_solution_as_csv(solutions: list):
 
 
 
+
+def take_usr_input():
+    
+    """
+        Función para tomar input del usuario
+    """
+
+    print('*'*50)
+    print("Ingrese numeros enteros mayores o iguales a 1")
+    print('*'*50)
+
+
+    # obtiene el numero minimo y maximo de materias que se van a meter 
+    # en un semestre
+    min_subjects = int(input("Ingrese el número mínimo de materias que quiere ver en un semestre: "))
+    max_subjects = int(input("Ingrese el número máximo de materias que quiere ver en un semestre: "))
+    
+    subjects = (min_subjects, max_subjects)
+    print("-"*50)
+
+    # obtiene el numero minimo y maximo de creditos que se van a meter 
+    # en un semestre
+    min_creds = int(input("Ingrese el número mínimo de créditos que quiere tomar en un semestre: "))
+    max_creds = int(input("Ingrese el número máximo de créditos que quiere tomar en un semestre: "))
+
+    creds_semester = (min_creds, max_creds)
+    print("-"*50)
+
+    # obtiene el numero minimo y maximo de creditos de electiva general que se van a meter 
+    # en un semestre
+    min_creds_gen = int(input("Ingrese el número mínimo de créditos de *electiva general* que quiere tomar en un semestre: "))
+    max_creds_gen = int(input("Ingrese el número máximo de créditos de *electiva general* que quiere tomar en un semestre: "))
+    
+    creds_elec = (min_creds_gen, max_creds_gen)
+    print("-"*50)
+
+    # obtiene el numero minimo y maximo de creditos de electiva HM que se van a meter 
+    # en un semestre
+    min_creds_hm = int(input("Ingrese el número mínimo de créditos de *electiva HM* que quiere tomar en un semestre: "))
+    max_creds_hm = int(input("Ingrese el número máximo de créditos de *electiva HM* que quiere tomar en un semestre: "))
+    
+    creds_hm = (min_creds_hm, max_creds_hm)
+    print("-"*50)
+
+    return subjects, creds_semester, creds_hm, creds_elec
+
+
+
+
+
 ##############################
 #          CHECKERS    
 ##############################
