@@ -14,7 +14,8 @@ from datetime import datetime
 from auxiliary_functions import *
 
 
-def find_solutions(graph: nx.Graph, creds_semester = (15,19), creds_hm = (1, 4), creds_elec = (2,3), verbose = False):
+def find_solutions(graph: nx.Graph, num_subjects = (4, 10), creds_semester = (15,19), 
+                   creds_hm = (1, 4), creds_elec = (2,3), verbose = False):
 
     """
         Wrapper para la función recursiva find_solutions_backtracking
@@ -38,7 +39,8 @@ def find_solutions(graph: nx.Graph, creds_semester = (15,19), creds_hm = (1, 4),
     subjects_grid.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
     # busca una solución por backtracking
-    solutions = find_solutions_bruteforce(graph, subjects_grid, creds_semester, creds_hm, creds_elec)
+    solutions = find_solutions_bruteforce(graph, subjects_grid, num_subjects,
+                                          creds_semester, creds_hm, creds_elec)
 
     print("\n\n")
 
@@ -51,7 +53,7 @@ def find_solutions(graph: nx.Graph, creds_semester = (15,19), creds_hm = (1, 4),
 
 
 
-def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,  
+def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,  num_subjects: tuple, 
                               creds_semester:tuple, creds_hm:tuple, creds_elec: tuple, verbose = False):
 
     """
@@ -62,18 +64,17 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
     elegible_lectures = [lecture for lecture, indegree in graph.in_degree if indegree == 0]
 
     # obtiene una lista de soluciones validas
-    valid_combinations = generate_valid_combinatorics(elegible_lectures, graph,
+    valid_combinations = generate_valid_combinatorics(elegible_lectures, graph, num_subjects,
                                                       creds_semester, creds_hm, creds_elec)
 
 
-    """
-        Hay que hacer un loop en paralelo que se encargue de hacer la parte recursiva
-        en 4 batches o tantas como el número de hilos del computador.
-
-
-        Usar un set para ver si hay repeticiones de combinaciones de malla
-        hay que ordenar alfabeticamente cada lista de combinaciones de la malla
-    """
+    ###
+    ###
+    ###
+    valid_combinations = valid_combinations[0:6000]
+    ###
+    ###
+    ###
 
     solutions = set()
     ncombinations = int(len(valid_combinations))
@@ -85,7 +86,8 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
 
     # crea una lista zip para poder paralelizar 
 
-    iterable = [(deepcopy(graph), combination, creds_semester, creds_hm, creds_elec) for combination in valid_combinations]
+    iterable = [(deepcopy(graph), combination, num_subjects, creds_semester, creds_hm, creds_elec) 
+                for combination in valid_combinations]
 
     # manda a correr a la funcion en paralelo
     answer = pool_obj.map(recursive_trial,  iterable)
@@ -126,8 +128,9 @@ def find_solutions_bruteforce(graph: nx.Graph, subjects_grid: pd.DataFrame,
 
 
 
-def generate_valid_combinatorics(subjects: list, graph: nx.Graph, creds_semester:tuple, creds_hm:tuple, 
-                                 creds_elec:tuple, verbose = False):
+def generate_valid_combinatorics(subjects: list, graph: nx.Graph, num_subjects: tuple, 
+                                 creds_semester:tuple, creds_hm:tuple, creds_elec:tuple, verbose = False):
+
 
     """
         Dada una lista de materias validas a inscribir (subjects) se encarga de generar una lista de combinaciones 
@@ -155,7 +158,7 @@ def generate_valid_combinatorics(subjects: list, graph: nx.Graph, creds_semester
     # empieza a hacer todas las combinaciones posibles de la lista de materias 
     # elegibles
 
-    for i in range(1, len(subjects)+1):
+    for i in range(num_subjects[0], num_subjects[1]+1):
 
         for combination in list( combinations(subjects, i) ):
             
@@ -183,6 +186,9 @@ def generate_valid_combinatorics(subjects: list, graph: nx.Graph, creds_semester
                 available_creds_gen = graph["Electiva general"]["creds"]
                 available_creds_hm = graph["Electiva HM"]["creds"]
 
+                if (available_creds_gen < creds_elec[0]) or (available_creds_hm < creds_hm[0]):
+                    continue
+
                 # puede que hallan menos creditos disponibles que el máximo que se puede inscribir
                 # o puede que hallan más creditos disponibles que los que se desean inscribir en un semestre
                 # por lo que se debe escoger como cota superior el mínimo entre ambas
@@ -202,6 +208,9 @@ def generate_valid_combinatorics(subjects: list, graph: nx.Graph, creds_semester
                 available_creds_gen = graph.nodes["Electiva general"]["creds"]
                 maxval_gen = min(available_creds_gen, creds_elec[1])
 
+                if (available_creds_gen < creds_elec[0]):
+                    continue
+
                 for i in range(creds_elec[0], maxval_gen + 1):
                     combs_creds.append( (i, 0) )
 
@@ -209,9 +218,11 @@ def generate_valid_combinatorics(subjects: list, graph: nx.Graph, creds_semester
             # caso en el que solo hay como opción el meter electiva hm
             elif ('Electiva HM' in combination):
 
-                print(graph.nodes(data=True))
                 available_creds_hm = graph.nodes["Electiva HM"]["creds"]
                 maxval_hm = min(available_creds_hm, creds_hm[1])
+
+                if (available_creds_hm < creds_hm[0]):
+                    continue
 
                 for j in range(creds_hm[0], maxval_hm + 1):
                     combs_creds.append( (0, j) )
@@ -259,9 +270,10 @@ def recursive_trial(zipped: tuple):
 
     graph           = zipped[0]
     combination     = zipped[1]
-    creds_semester  = zipped[2]
-    creds_hm        = zipped[3]
-    creds_elec      = zipped[4]
+    num_subjects    = zipped[2]
+    creds_semester  = zipped[3]
+    creds_hm        = zipped[4]
+    creds_elec      = zipped[5]
     verbose         = False
 
     
@@ -317,7 +329,7 @@ def recursive_trial(zipped: tuple):
     elegible_lectures = [lecture for lecture, indegree in graph.in_degree if indegree == 0]
 
     # crea las combinaciones viables de materias a inscribir
-    valid_combinations = generate_valid_combinatorics(elegible_lectures, graph,
+    valid_combinations = generate_valid_combinatorics(elegible_lectures, graph, num_subjects, 
                                                       creds_semester, creds_hm, creds_elec)
 
     if verbose:
@@ -335,7 +347,7 @@ def recursive_trial(zipped: tuple):
 
         for new_combination in valid_combinations:
 
-            solution = recursive_trial( (deepcopy(graph), new_combination, creds_semester, creds_hm, creds_elec) )
+            solution = recursive_trial( (deepcopy(graph), new_combination, num_subjects, creds_semester, creds_hm, creds_elec) )
 
             if len(solution) > 0:
                 solution.append( combination ) 
@@ -344,21 +356,18 @@ def recursive_trial(zipped: tuple):
         return []
      
 
+def run_program():
+
+    num_subjects, creds_semester, creds_hm, creds_elec= take_usr_input()
+    grafito = csv_to_graph()
+    find_solutions(grafito, num_subjects, creds_semester, creds_hm, creds_elec, verbose = False)
+
+
 start_time = datetime.now()
-
-grafito = csv_to_graph()
-find_solutions(grafito)
-
+run_program()
 end_time = datetime.now()
 print('\nDuration: {}'.format(end_time - start_time))
 
-
-
-#draw_graph(grafito) 
-#check_graph_attrs(grafito)
-
-#print("materias sin prerrquisitos")
-#print(find_subjects_without_prerreqs(grafito))
 
 
 

@@ -4,7 +4,6 @@ from copy import deepcopy
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
-import cProfile
 
 from sys import stdout
 from time import time
@@ -206,6 +205,9 @@ def generate_valid_combinatorics(subjects: list, graph: nx.Graph, num_subjects: 
                 available_creds_gen = graph["Electiva general"]["creds"]
                 available_creds_hm = graph["Electiva HM"]["creds"]
 
+                if (available_creds_gen < creds_elec[0]) or (available_creds_hm < creds_hm[0]):
+                    continue
+
                 # puede que hallan menos creditos disponibles que el máximo que se puede inscribir
                 # o puede que hallan más creditos disponibles que los que se desean inscribir en un semestre
                 # por lo que se debe escoger como cota superior el mínimo entre ambas
@@ -225,6 +227,9 @@ def generate_valid_combinatorics(subjects: list, graph: nx.Graph, num_subjects: 
                 available_creds_gen = graph.nodes["Electiva general"]["creds"]
                 maxval_gen = min(available_creds_gen, creds_elec[1])
 
+                if (available_creds_gen < creds_elec[0]):
+                    continue
+
                 for i in range(creds_elec[0], maxval_gen + 1):
                     combs_creds.append( (i, 0) )
 
@@ -235,6 +240,9 @@ def generate_valid_combinatorics(subjects: list, graph: nx.Graph, num_subjects: 
                 print(graph.nodes(data=True))
                 available_creds_hm = graph.nodes["Electiva HM"]["creds"]
                 maxval_hm = min(available_creds_hm, creds_hm[1])
+
+                if (available_creds_hm < creds_hm[0]):
+                    continue
 
                 for j in range(creds_hm[0], maxval_hm + 1):
                     combs_creds.append( (0, j) )
@@ -366,7 +374,7 @@ def recursive_trial(graph: nx.Graph, combination: tuple,  num_subjects: tuple,
 
 def correr_todo():
 
-    num_subjects, creds_semester, creds_elec, creds_hm = take_usr_input()
+    num_subjects, creds_semester, creds_hm, creds_elec = take_usr_input()
 
     grafito = csv_to_graph()
     find_solutions(grafito, num_subjects, creds_semester, creds_hm, creds_elec, verbose = False)
